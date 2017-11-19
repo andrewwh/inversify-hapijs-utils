@@ -1,0 +1,56 @@
+{
+  "name": "inversify-hapijs-utils",
+  "version": "0.0.1",
+  "description": "Some utilities for the development of hapijs rest applications with Inversify",
+  "main": "lib/index.js",
+  "jsnext:main": "es/index.js",
+  "typings": "./dts/index.d.ts",
+  "scripts": {
+    "test": "gulp",
+    "publish-please": "publish-please",
+    "prepublish": "publish-please guard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewwh/inversify-hapijs-utils.git"
+  },
+  "keywords": [
+    "InversifyJS",
+    "hapijs",
+    "dependency",
+    "injection"
+  ],
+  "author": "Andrew Wheeler",
+  "license": "MIT",
+  "bugs": {},
+  "devDependencies": {
+    "@types/chai": "4.0.5",
+    "@types/mocha": "2.2.44",
+    "@types/node": "8.0.53",
+    "@types/sinon": "4.0.0",
+    "@types/supertest": "2.0.3",
+    "chai": "^4.1.2",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-istanbul": "1.1.2",
+    "gulp-mocha": "^3.0.1",
+    "gulp-sourcemaps": "^2.6.1",
+    "gulp-tslint": "8.1.2",
+    "gulp-typescript": "^3.2.3",
+    "mocha": "4.0.1",
+    "publish-please": "2.3.1",
+    "reflect-metadata": "^0.1.10",
+    "run-sequence": "2.2.0",
+    "sinon": "^4.1.2",
+    "source-map-support": "0.5.0",
+    "supertest": "^3.0.0",
+    "tslint": "5.8.0",
+    "typescript": "^2.6.1",
+    "@types/hapi": "^16.1.11",
+    "@types/inversify": "^2.0.33"    
+  },
+  "dependencies": {
+    "hapi": "^16.6.2",
+    "inversify": "^4.5.1"
+  }
+}
