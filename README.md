@@ -18,6 +18,7 @@ Please refer to the [InversifyJS documentation](https://github.com/inversify/Inv
 
 ### Step 1: Decorate your controllers
 To use a class as a "controller" for your hapijs app, simply add the `@Controller` decorator to the class. Similarly, decorate methods of the class to serve as request handlers. 
+
 The following example will declare a controller that responds to `GET /foo'.
 
 ```ts
@@ -37,6 +38,8 @@ export class FooController implements interfaces.Controller {
     }
 }
 ```
+
+> Note: The controller should not use the hapijs reply method to control output, but rather it should return the result directly. Any errors should return a Boom error.
 
 ### Step 2: Configure container and server
 Configure the inversify container in your composition root as usual.
@@ -122,17 +125,27 @@ Registers the decorated controller method as a request handler for a particular 
 Shortcut decorators which are simply wrappers for `@Method`. Right now these include `@Get`, `@Post`, `@Put`, `@Patch`, `@Head`, `@Delete`, and `@Options`. For anything more obscure, use `@Method` (Or make a PR :smile:).
 
 ## Middleware
-Middleware can be either an instance of `RoutePrerequisiteRequestHandler` or an InversifyJS service idenifier. This is attached as a route 'pre' method. To stop processing you will need to return an Error or HttpError.
+Middleware can be either an instance of `RequestHandler` or an InversifyJS service identifier. This is attached as a route 'pre' method. To stop processing you will need to return a Boom error or a javascript Error.
 
-The simplest way to use middleware is to define a `RoutePrerequisiteRequestHandler` instance and pass that handler as decorator parameter.
+The simplest way to use middleware is to define a `RequestHandler` instance and pass that handler as decorator parameter.
 
 ```ts
 // ...
-const loggingHandler = (req: Request) => {
+const loggingHandler = (req: Request, reply: ReplyNoContinue) => {
   console.log(req);
+  return reply.continue();
 };
 
-@Controller('/foo', loggingHandler)
+const securityHandler = (req: Request, reply: ReplyNoContinue) => {
+  // Return a Boom (or any Error) if you want processing to stop
+  if (!req.headers['token']) {
+      return reply(Boom.unauthorized('No esi session id in request header'));
+  }
+
+  return reply.continue();
+};
+
+@Controller('/foo', loggingHandler, securityHandler)
 @injectable()
 export class FooController {
     
@@ -164,6 +177,26 @@ export class FooController implements interfaces.Controller {
     
     @Get('/', TYPES.LoggingMiddleware)
     private index(req: Request): string {
+        return this.fooService.get(req.query.id);
+    }
+}
+```
+
+## Error Handling
+HapiJs supports Boom objects.
+
+```ts
+@Controller('/foo', TYPES.LoggingMiddleware)
+@injectable()
+export class FooController implements interfaces.Controller {
+    
+    constructor( @inject('FooService') private fooService: FooService ) {}
+    
+    @Get('/{id}')
+    private index(req: Request): string {
+        if (!req.params.id) {
+            return Boom.badRequest('id is required');
+        }
         return this.fooService.get(req.query.id);
     }
 }

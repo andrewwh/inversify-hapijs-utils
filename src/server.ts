@@ -2,7 +2,6 @@ import * as inversify from "inversify";
 import * as hapi from "hapi";
 import { interfaces } from "./interfaces";
 import { TYPE, METADATA_KEY } from "./constants";
-import {HttpError, HttpErrors} from './errors';
 
 /**
  * Wrapper for the hapi server.
@@ -27,6 +26,7 @@ export class InversifyHapiServer {
             typeof (opts as interfaces.ServerOptions).defaultRoot === "string"
         ) {
             this.defaultRoot = opts.defaultRoot as string;
+            // Hapi does not allow extra config values passed (strict validation)
             delete opts.defaultRoot;
         }
 
@@ -83,10 +83,13 @@ export class InversifyHapiServer {
             );
 
             if (controllerMetadata && methodMetadata) {
+                let controllerMiddleware = this.resolveMiddleware(...controllerMetadata.middleware);
+
                 methodMetadata.forEach((metadata: interfaces.ControllerMethodMetadata) => {
                     let handler: hapi.RouteHandler = this.handlerFactory(controllerMetadata.target.name, metadata.key);
                     let routeOptions: any = typeof metadata.options === "string" ? { path: metadata.options } : metadata.options;
-                    
+                    let routeMiddleware = this.resolveMiddleware(...metadata.middleware);
+
                     if (typeof routeOptions.path === "string" && typeof controllerMetadata.path === "string" && controllerMetadata.path !== "/") {
                         routeOptions.path = controllerMetadata.path + routeOptions.path;
                     } else if (routeOptions.path instanceof RegExp && controllerMetadata.path !== "/") {
@@ -94,29 +97,26 @@ export class InversifyHapiServer {
                     }
 
                     this.app.route({
+                        config: {
+                            pre: [...controllerMiddleware, ...routeMiddleware]
+                        },
+                        handler: handler,
                         method: metadata.method.toUpperCase() as hapi.HTTP_METHODS_PARTIAL,
-                        path: routeOptions.path,
-                        handler: handler
+                        path: routeOptions.path
                     });
                 });
             }
         });
     }
 
-    private sendReply(reply: hapi.ReplyNoContinue, value: any): hapi.ReplyValue {
-        if (value instanceof HttpError) {
-            const error = value as HttpError;
-            return reply(
-                {
-                    code: error.code,
-                    message: error.message
-                }
-            )
-            .code(error.code)
-            .message(error.message);
-        } else {
-            return reply(value);
-        }
+    private resolveMiddleware(...middleware: interfaces.Middleware[]): hapi.RouteHandler[] {
+        return middleware.map(middlewareItem => {
+            try {
+                return this.container.get<hapi.RouteHandler>(middlewareItem);
+            } catch (_) {
+                return middlewareItem as hapi.RouteHandler;
+            }
+        });
     }
 
     private handlerFactory(controllerName: any, key: string): hapi.RouteHandler {
@@ -127,15 +127,15 @@ export class InversifyHapiServer {
             if (result && result instanceof Promise) {
                 result.then((value: any) => {
                     if (value) {
-                        this.sendReply(reply ,value);
+                        reply(value);
                     }
                 })
                 .catch((error: any) => {
-                    return this.sendReply(reply, HttpErrors.internalError(error.message));
+                    return reply(error);
                 });
 
             } else if (result) {
-                return this.sendReply(reply, result);
+                return reply(result);
             }
         };
     }
