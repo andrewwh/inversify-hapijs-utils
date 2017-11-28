@@ -29,7 +29,7 @@ export function Head(options: interfaces.RouteOptions, ...middleware: interfaces
 }
 
 export function Delete(options: interfaces.RouteOptions, ...middleware: interfaces.Middleware[]): interfaces.HandlerDecorator {
-    return Method("del", options, ...middleware);
+    return Method("delete", options, ...middleware);
 }
 
 export function Options(options: interfaces.RouteOptions, ...middleware: interfaces.Middleware[]): interfaces.HandlerDecorator {
