@@ -19,7 +19,7 @@ export class InversifyHapiServer {
      */
     constructor(container: inversify.interfaces.Container, opts?: (hapi.ServerOptions & interfaces.ServerOptions)) {
         this.container = container;
-        
+
         if (
             opts &&
             opts.hasOwnProperty("defaultRoot") &&
@@ -126,7 +126,10 @@ export class InversifyHapiServer {
 
             if (result && result instanceof Promise) {
                 result.then((value: any) => {
-                    if (value) {
+                    if (value == undefined) {
+                        const response = reply();
+                        response.statusCode = 204;
+                    } else {
                         reply(value);
                     }
                 })
