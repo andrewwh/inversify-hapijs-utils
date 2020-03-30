@@ -41,7 +41,16 @@ export class FooController implements interfaces.Controller {
 
 > Note: The controller should not use the hapijs reply method to control output, but rather it should return the result directly. Any errors should return a Boom error.
 
-### Step 2: Configure container and server
+The controller also needs to use constant types. Use `Symbol.for("Controller")` to register it as a controller.
+
+```ts
+const TYPES = {
+    Controller: Symbol.for("Controller")
+}
+```
+
+
+### Step 3: Configure container and server
 Configure the inversify container in your composition root as usual.
 
 Then, pass the container to the InversifyHapiServer constructor. This will allow it to register all controllers and their dependencies from your container and attach them to the hapi app.
