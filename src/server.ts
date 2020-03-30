@@ -53,6 +53,8 @@ export class InversifyHapiServer {
         // register server-level middleware before anything else
         if (this.configFn) {
             this.configFn.apply(undefined, [this.app]);
+        } else {
+            this.app.connection({port: 8080});
         }
 
         this.registerControllers();
