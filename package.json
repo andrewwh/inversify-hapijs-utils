@@ -31,7 +31,7 @@
     "@types/supertest": "2.0.3",
     "chai": "^4.1.2",
     "del": "^3.0.0",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-istanbul": "1.1.2",
     "gulp-mocha": "^3.0.1",
     "gulp-sourcemaps": "^2.6.1",
